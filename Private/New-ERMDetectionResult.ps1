@@ -22,19 +22,12 @@
     )
 
     [PSCustomObject]@{
-        Component =
-            $Component
-        Status =
-            $Status
-        Data =
-            $Data
-        Errors =
-            $Errors
-        Warnings =
-            $Warnings
-        DetectionTime =
-            Get-Date
-        DetectorVersion =
-            "0.1.0"
+        Component = $Component
+        Status = $Status
+        Data = $Data
+        Errors = $Errors
+        Warnings = $Warnings
+        DetectionTime = Get-Date
+        DetectorVersion = "0.1.0"
     }
 }

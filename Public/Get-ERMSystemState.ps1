@@ -3,12 +3,9 @@
     [CmdletBinding()]
 
     param()
-    $StartTime =
-        Get-Date
+    $StartTime = Get-Date
 
-
-    Write-ERMLog `
-        -Message "Starting system detection"
+    Write-ERMLog -Message "Starting system detection"
 
     try{
         $Detectors =
@@ -28,14 +25,11 @@
                 -Detectors $Detectors `
                 -StartTime $StartTime
 
-        Write-ERMLog `
-            -Message "System detection completed"
+        Write-ERMLog -Message "System detection completed"
         return $State
     }
     catch{
-        Write-ERMLog `
-            -Level Error `
-            -Message $_.Exception.Message
+        Write-ERMLog -Level Error -Message $_.Exception.Message
         throw
     }
 }

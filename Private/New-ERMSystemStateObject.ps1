@@ -1,56 +1,39 @@
 ﻿function New-ERMSystemStateObject {
-
     [CmdletBinding()]
-
-    param
-    (
+    param(
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [array]
         $Detectors,
-
         [Parameter()]
         [datetime]
         $StartTime = (Get-Date)
     )
 
     # Normalize detector collection
-    $Detectors =
-        @(
-            $Detectors |
+    $Detectors = @($Detectors |
             Where-Object {
                 $null -ne $_
-            }
-        )
+            })
 
     # Capture completion time
-    $EndTime =
-        Get-Date
+    $EndTime = Get-Date
 
     # Determine detector health states
-    $Failed =
-        @(
-            $Detectors |
+    $Failed = @($Detectors |
             Where-Object {
                 $_.Status -eq "Failed"
-            }
-        )
+            })
 
-    $Warnings =
-        @(
-            $Detectors |
+    $Warnings = @($Detectors |
             Where-Object {
                 $_.Status -eq "Warning"
-            }
-        )
+            })
 
-    $Healthy =
-        @(
-            $Detectors |
+    $Healthy = @($Detectors |
             Where-Object {
                 $_.Status -eq "Healthy"
-            }
-        )
+            })
 
     # Determine overall system health
     switch ($true){
@@ -67,16 +50,11 @@
     }
 
     # Build component summary
-    $Summary =
-    [PSCustomObject]@{
-        TotalDetectors =
-            $Detectors.Count
-        Healthy =
-            $Healthy.Count
-        Warnings =
-            $Warnings.Count
-        Failed =
-            $Failed.Count
+    $Summary = [PSCustomObject]@{
+        TotalDetectors = $Detectors.Count
+        Healthy = $Healthy.Count
+        Warnings = $Warnings.Count
+        Failed = $Failed.Count
         FailedComponents =
             if($Failed.Count -gt 0){
                 [string[]]$Failed.Component
@@ -92,8 +70,7 @@
     }
 
     # Component status table
-    $ComponentStatus =
-        $Detectors |
+    $ComponentStatus = $Detectors |
         Select-Object `
             Component,
             Status
@@ -104,10 +81,8 @@
         foreach($Error in $Detector.Errors){
             if($Error){
                 [PSCustomObject]@{
-                    Component =
-                        $Detector.Component
-                    Message =
-                        $Error
+                    Component = $Detector.Component
+                    Message = $Error
                 }
             }
         }
@@ -119,10 +94,8 @@
         foreach($Warning in $Detector.Warnings){
             if($Warning){
                 [PSCustomObject]@{
-                    Component =
-                        $Detector.Component
-                    Message =
-                        $Warning
+                    Component = $Detector.Component
+                    Message = $Warning
                 }
             }
         }
@@ -137,52 +110,31 @@
     }
 
     # Module metadata
-    $ModuleInformation =
-    [PSCustomObject]@{
-        Name =
-            "EnterpriseRemoteManagement"
-        Version =
-            "0.1.0"
-        PowerShellVersion =
-            $PSVersionTable.PSVersion.ToString()
+    $ModuleInformation = [PSCustomObject]@{
+        Name = "EnterpriseRemoteManagement"
+        Version = "0.1.0"
+        PowerShellVersion = $PSVersionTable.PSVersion.ToString()
     }
 
     # Detection execution metadata
-    $RunInformation =
-    [PSCustomObject]@{
-        StartTime =
-            $StartTime
-        EndTime =
-            $EndTime
-        DurationMilliseconds =
-            [math]::Round(
-                ($EndTime - $StartTime).TotalMilliseconds,
-                2
-            )
-        DetectorCount =
-            $Detectors.Count
+    $RunInformation = [PSCustomObject]@{
+        StartTime = $StartTime
+        EndTime = $EndTime
+        DurationMilliseconds = [math]::Round(($EndTime - $StartTime).TotalMilliseconds,2)
+        DetectorCount = $Detectors.Count
     }
 
     # Return normalized ERM system state
     [PSCustomObject]@{
-        SchemaVersion =
-            "1.0"
-        DetectionVersion =
-            "0.1.0"
-        ModuleInformation =
-            $ModuleInformation
-        ComputerName =
-            $env:COMPUTERNAME
-        DetectionTime =
-            $EndTime
-        OverallStatus =
-            $OverallStatus
-        RunInformation =
-            $RunInformation
-        Summary =
-            $Summary
-        ComponentStatus =
-            $ComponentStatus
+        SchemaVersion = "1.0"
+        DetectionVersion = "0.1.0"
+        ModuleInformation = $ModuleInformation
+        ComputerName = $env:COMPUTERNAME
+        DetectionTime = $EndTime
+        OverallStatus = $OverallStatus
+        RunInformation = $RunInformation
+        Summary = $Summary
+        ComponentStatus = $ComponentStatus
         Errors =
             if($Errors.Count -gt 0){
                 $Errors
@@ -195,7 +147,6 @@
             }else{
                 $null
             }
-        Components =
-            $Detectors
+        Components = $Detectors
     }
 }

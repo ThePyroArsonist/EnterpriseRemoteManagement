@@ -3,18 +3,11 @@
     param()
 
     try{
-        $Computer =
-            Get-CimInstance `
-                -ClassName Win32_ComputerSystem `
-                -ErrorAction Stop
-        $UserIdentity =
-            [System.Security.Principal.WindowsIdentity]::GetCurrent()
-        $DomainData =
-        [PSCustomObject]@{
-            ComputerName =
-                $env:COMPUTERNAME
-            DomainJoined =
-                $Computer.PartOfDomain
+        $Computer = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
+        $UserIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+        $DomainData = [PSCustomObject]@{
+            ComputerName = $env:COMPUTERNAME
+            DomainJoined = $Computer.PartOfDomain
             ComputerDomain =
                 if($Computer.PartOfDomain){
                     $Computer.Domain
@@ -31,10 +24,8 @@
                     5 {"Primary Domain Controller"}
                     default {"Unknown"}
                 }
-            UserLogonName =
-                $UserIdentity.Name
-            UserLogonDomain =
-                $env:USERDOMAIN
+            UserLogonName = $UserIdentity.Name
+            UserLogonDomain = $env:USERDOMAIN
         }
         New-ERMDetectionResult `
             -Component "Domain" `
@@ -45,8 +36,6 @@
             -Component "Domain" `
             -Status "Failed" `
             -Data $null `
-            -Errors @(
-                $_.Exception.Message
-            )
+            -Errors @($_.Exception.Message)
     }
 }

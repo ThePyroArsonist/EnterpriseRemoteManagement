@@ -25,29 +25,18 @@
             } |
             ForEach-Object {
                 [PSCustomObject]@{
-                    Interface =
-                        $_.InterfaceAlias
-                    IPv4Address =
-                        @($_.IPv4Address.IPAddress)
-                    IPv6Address =
-                        @($_.IPv6Address.IPAddress)
-                    DefaultGateway =
-                        @($_.IPv4DefaultGateway.NextHop)
+                    Interface = $_.InterfaceAlias
+                    IPv4Address = @($_.IPv4Address.IPAddress)
+                    IPv6Address = @($_.IPv6Address.IPAddress)
+                    DefaultGateway = @($_.IPv4DefaultGateway.NextHop)
                 }
             }
 
-        $GatewayAvailable =
-            $false
-
-        $Gateway =
-            @($IPConfiguration.DefaultGateway |
-                Where-Object {
-                    $_
-                })
+        $GatewayAvailable = $false
+        $Gateway = @($IPConfiguration.DefaultGateway | Where-Object { $_ })
 
         if($Gateway.Count -gt 0){
-            $GatewayAvailable =
-                $true
+            $GatewayAvailable = $true
         }
 
         # DNS Configuration
@@ -80,61 +69,41 @@
                         -ErrorAction SilentlyContinue
 
                 [PSCustomObject]@{
-                    Name =
-                        $_.Name
-                    InterfaceAlias =
-                        $_.InterfaceAlias
-                    Status =
-                        $Adapter.Status
-                    NetworkCategory =
-                        $_.NetworkCategory
-                    IPv4Connectivity =
-                        $_.IPv4Connectivity
-                    IPv6Connectivity =
-                        $_.IPv6Connectivity
+                    Name = $_.Name
+                    InterfaceAlias = $_.InterfaceAlias
+                    Status = $Adapter.Status
+                    NetworkCategory = $_.NetworkCategory
+                    IPv4Connectivity = $_.IPv4Connectivity
+                    IPv6Connectivity = $_.IPv6Connectivity
                 }
             }
 
         # Domain connectivity check
         $DomainConnectivity =
         [PSCustomObject]@{
-            DomainJoined =
-                $false
-            Domain =
-                $null
-            Site =
-                $null
-            DomainController =
-                $null
-            Reachable =
-                $false
+            DomainJoined =      $false
+            Domain =            $null
+            Site =              $null
+            DomainController =  $null
+            Reachable =         $false
         }
 
         try{
-            $ComputerSystem =
-                Get-CimInstance `
-                    Win32_ComputerSystem
-
+            $ComputerSystem = Get-CimInstance Win32_ComputerSystem
             if($ComputerSystem.PartOfDomain){
-                $DomainConnectivity.DomainJoined =
-                    $true
-                $DomainConnectivity.Domain =
-                    $ComputerSystem.Domain
+                $DomainConnectivity.DomainJoined = $true
+                $DomainConnectivity.Domain = $ComputerSystem.Domain
 
                 # Discover domain controller
-                $DCDiscovery =
-                    nltest /dsgetdc:$($ComputerSystem.Domain) 2>&1
+                $DCDiscovery = nltest /dsgetdc:$($ComputerSystem.Domain) 2>&1
                 if($LASTEXITCODE -eq 0){
-                    $DomainConnectivity.Reachable =
-                        $true
-                    $DCName =
-                        $DCDiscovery |
+                    $DomainConnectivity.Reachable = $true
+                    $DCName = $DCDiscovery |
                         Select-String "DC:" |
                         ForEach-Object {
                             $_.Line.Replace("DC:","").Trim()
                         }
-                    $DCAddress =
-                        $DCDiscovery |
+                    $DCAddress = $DCDiscovery |
                         Select-String "Address:" |
                         ForEach-Object {
                             $_.Line.Replace("Address:","").Trim()
@@ -157,22 +126,17 @@
                 }
 
                 # Discover AD Site
-                $SiteDiscovery =
-                    nltest /dsgetsite 2>&1
+                $SiteDiscovery = nltest /dsgetsite 2>&1
                 if($LASTEXITCODE -eq 0){
-                    $DomainConnectivity.Site =
-                        ($SiteDiscovery |
-                        Select-Object -First 1).Trim()
+                    $DomainConnectivity.Site = ($SiteDiscovery | Select-Object -First 1).Trim()
                 }
             }
         }catch{
-            $DomainConnectivity.Reachable =
-                $false
+            $DomainConnectivity.Reachable = $false
         }
 
         # DNS resolution test
-        $DNSResolution =
-            $false
+        $DNSResolution = $false
 
         try{
             if($DomainConnectivity.Domain){
@@ -189,88 +153,62 @@
         # Build detector data
         $NetworkData =
         [PSCustomObject]@{
-            ComputerName =
-                $env:COMPUTERNAME
-            Adapters =
-                @($Adapters)
-            IPConfiguration =
-                @($IPConfiguration)
-            DNS =
-                @($DNS)
-            Profiles =
-                @($Profiles)
-            Connectivity =
-            [PSCustomObject]@{
-                Domain =
-                    $DomainConnectivity
-                DNSResolution =
-                    $DNSResolution
-                GatewayAvailable =
-                    $GatewayAvailable
+            ComputerName = $env:COMPUTERNAME
+            Adapters = @($Adapters)
+            IPConfiguration = @($IPConfiguration)
+            DNS = @($DNS)
+            Profiles = @($Profiles)
+            Connectivity = [PSCustomObject]@{
+                Domain = $DomainConnectivity
+                DNSResolution = $DNSResolution
+                GatewayAvailable = $GatewayAvailable
             }
         }
 
         # Detector evaluation
-        $Errors =
-            @()
-
-        $Warnings =
-            @()
+        $Errors = @()
+        $Warnings = @()
 
         # Adapter validation
         if($Adapters.Count -eq 0){
-            $Errors +=
-                "No active network adapters detected."
+            $Errors += "No active network adapters detected."
         }
 
         # IP validation
         $ValidIP =
             $IPConfiguration.IPv4Address |
             Where-Object {
-                $_ -and
-                $_ -notlike "169.254*"
+                $_ -and $_ -notlike "169.254*"
             }
 
-
         if(-not $ValidIP){
-            $Errors +=
-                "No valid IPv4 address detected."
+            $Errors += "No valid IPv4 address detected."
         }
 
         # DNS validation
         if(-not $DNSResolution){
-            $Warnings +=
-                "DNS resolution failed."
+            $Warnings += "DNS resolution failed."
         }
 
         # Domain validation
-        if($DomainConnectivity.DomainJoined -and
-            -not $DomainConnectivity.Reachable){
-            $Warnings +=
-                "Domain joined computer cannot locate a domain controller."
+        if($DomainConnectivity.DomainJoined -and -not $DomainConnectivity.Reachable){
+            $Warnings += "Domain joined computer cannot locate a domain controller."
         }
 
         # Gateway validation
-        if(-not $GatewayAvailable)
-            {
-                $Warnings +=
-                    "No default gateway detected."
+        if(-not $GatewayAvailable){
+                $Warnings += "No default gateway detected."
             }
 
         # Determine status
-        $Status =
-            "Healthy"
-
+        $Status = "Healthy"
 
         if($Errors.Count -gt 0){
-            $Status =
-                "Failed"
+            $Status = "Failed"
         }
         elseif($Warnings.Count -gt 0){
-            $Status =
-                "Warning"
+            $Status = "Warning"
         }
-
 
         New-ERMDetectionResult `
             -Component "Network" `
@@ -283,8 +221,6 @@
             -Component "Network" `
             -Status "Failed" `
             -Data $null `
-            -Errors @(
-                $_.Exception.Message
-            )
+            -Errors @($_.Exception.Message)
     }
 }

@@ -4,29 +4,20 @@
         [Parameter(Mandatory)]
         $Components
     )
-    $Failed =
-        $Components |
+    $Failed = $Components |
         Where-Object {
             $_.Status -eq "Failed"
         }
-    $Warnings =
-        $Components |
+    $Warnings = $Components |
         Where-Object {
             $_.Status -eq "Warning"
         }
     [PSCustomObject]@{
-        TotalDetectors =
-            $Components.Count
-        Healthy =
-            ($Components |
-            Where-Object Status -eq "Healthy").Count
-        Warnings =
-            $Warnings.Count
-        Failed =
-            $Failed.Count
-        FailedComponents =
-            $Failed.Component
-        WarningComponents =
-            $Warnings.Component
+        TotalDetectors = $Components.Count
+        Healthy = ($Components | Where-Object Status -eq "Healthy").Count
+        Warnings = $Warnings.Count
+        Failed = $Failed.Count
+        FailedComponents = $Failed.Component
+        WarningComponents = $Warnings.Component
     }
 }

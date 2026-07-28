@@ -1,5 +1,4 @@
 ﻿@{
-
     # Module identity
     RootModule = 'EnterpriseRemoteManagement.psm1'
     ModuleVersion = '0.1.0'
@@ -10,10 +9,8 @@
 
     Description = '
     Enterprise PowerShell module for secure remote management,
-    WinRM HTTPS configuration, inventory, and compliance.
-    '
+    WinRM HTTPS configuration, inventory, and compliance.'
     PowerShellVersion = '5.1'
-
 
     # Public commands
     FunctionsToExport = @(
@@ -33,9 +30,6 @@
                 'Automation',
                 'Enterprise'
             )
-
         }
-
     }
-
 }
