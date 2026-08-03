@@ -1,0 +1,786 @@
+# Certificate Object
+
+The ERM Certificate Object is the canonical representation of an X.509 certificate within the Enterprise Remote Management framework.
+
+Every certificate discovered by the Certificate Engine is converted into this object before any analysis occurs.
+
+This guarantees that every downstream engine works against the same schema regardless of:
+
+- Windows version
+- PowerShell version
+- Certificate store
+- Certificate provider
+- Certificate type
+
+The object is considered immutable after normalization.
+
+Subsequent analysis engines only populate their own sections.
+
+---
+
+# Creating a Certificate Inventory
+
+Retrieve the complete certificate inventory:
+
+```powershell
+$Inventory = Get-ERMCertificateInformation -Raw
+```
+
+The inventory contains:
+
+```powershell
+$Inventory.Metadata
+
+$Inventory.Environment
+
+$Inventory.Statistics
+
+$Inventory.Certificates
+
+$Inventory.Errors
+```
+
+---
+
+# Accessing Certificates
+
+Retrieve every certificate.
+
+```powershell
+$Inventory.Certificates
+```
+
+Retrieve the first certificate.
+
+```powershell
+$Inventory.Certificates[0]
+```
+
+Display every property.
+
+```powershell
+$Inventory.Certificates[0] | Format-List *
+```
+
+---
+
+# Top-Level Object Layout
+
+Every certificate exposes the following properties.
+
+```text
+Metadata
+
+Identity
+
+Names
+
+Validity
+
+Algorithms
+
+PrivateKey
+
+Usage
+
+Enrollment
+
+Identifiers
+
+AuthorityInformationAccess
+
+CRLDistributionPoints
+
+IdentityMatch
+
+Classification
+
+Validation
+
+Suitability
+
+Recommendation
+
+WinRM
+
+Internal
+```
+
+---
+
+# Metadata
+
+Contains inventory information.
+
+```powershell
+$Certificate.Metadata
+```
+
+Returns:
+
+```text
+InventoryVersion
+
+InventoryTime
+
+Store
+
+StoreLocation
+
+StoreName
+```
+
+Example:
+
+```powershell
+$Certificate.Metadata.Store
+```
+
+Result:
+
+```text
+Cert:\LocalMachine\My
+```
+
+---
+
+# Identity
+
+Contains the certificate identity.
+
+```powershell
+$Certificate.Identity
+```
+
+Properties
+
+```text
+Subject
+
+CommonName
+
+Issuer
+
+Thumbprint
+
+SerialNumber
+
+FriendlyName
+
+Version
+```
+
+Example:
+
+```powershell
+$Certificate.Identity.Subject
+```
+
+---
+
+# Names (Subject Alternative Names)
+
+```powershell
+$Certificate.Names
+```
+
+Properties
+
+```text
+DNS
+
+UPN
+
+Email
+
+URI
+
+IP
+
+Other
+
+Counts
+
+HasDNSNames
+
+HasUPN
+
+HasEmail
+
+HasURI
+
+HasIPAddresses
+```
+
+Examples
+
+Retrieve DNS names.
+
+```powershell
+$Certificate.Names.DNS
+```
+
+Retrieve email SANs.
+
+```powershell
+$Certificate.Names.Email
+```
+
+Determine whether DNS names exist.
+
+```powershell
+$Certificate.Names.HasDNSNames
+```
+
+---
+
+# Validity
+
+```powershell
+$Certificate.Validity
+```
+
+Properties
+
+```text
+NotBefore
+
+NotAfter
+
+DaysRemaining
+
+Expired
+
+ExpiringSoon
+```
+
+Example
+
+```powershell
+$Certificate.Validity.DaysRemaining
+```
+
+---
+
+# Algorithms
+
+```powershell
+$Certificate.Algorithms
+```
+
+Properties
+
+```text
+PublicKey
+
+Signature
+
+HashAlgorithm
+
+KeyStrength
+
+SignatureStrength
+
+IsWeakKey
+
+IsWeakHash
+
+Summary
+```
+
+Examples
+
+```powershell
+$Certificate.Algorithms.HashAlgorithm
+
+$Certificate.Algorithms.IsWeakHash
+```
+
+---
+
+# PrivateKey
+
+```powershell
+$Certificate.PrivateKey
+```
+
+Properties
+
+```text
+Present
+
+Accessible
+
+Algorithm
+
+Provider
+
+ProviderType
+
+KeyLength
+
+HardwareBacked
+
+Exportable
+```
+
+Examples
+
+```powershell
+$Certificate.PrivateKey.Present
+
+$Certificate.PrivateKey.Accessible
+```
+
+---
+
+# Usage
+
+The Usage section groups certificate usage information.
+
+```powershell
+$Certificate.Usage
+```
+
+Contains
+
+```text
+EKU
+
+KeyUsage
+
+BasicConstraints
+
+Policies
+```
+
+---
+
+# Enhanced Key Usage
+
+```powershell
+$Certificate.Usage.EKU
+```
+
+Example properties
+
+```text
+ServerAuthentication
+
+ClientAuthentication
+
+CodeSigning
+
+SmartCardLogon
+
+SecureEmail
+
+TimeStamping
+
+AnyPurpose
+```
+
+Example
+
+```powershell
+$Certificate.Usage.EKU.ServerAuthentication
+```
+
+---
+
+# Key Usage
+
+```powershell
+$Certificate.Usage.KeyUsage
+```
+
+Contains normalized key usage flags.
+
+Example
+
+```powershell
+$Certificate.Usage.KeyUsage.DigitalSignature
+```
+
+---
+
+# Basic Constraints
+
+```powershell
+$Certificate.Usage.BasicConstraints
+```
+
+Properties
+
+```text
+CertificateAuthority
+
+PathLengthConstraint
+
+Critical
+```
+
+---
+
+# Policies
+
+```powershell
+$Certificate.Usage.Policies
+```
+
+Contains all certificate policy OIDs.
+
+---
+
+# Enrollment
+
+Enterprise enrollment information.
+
+```powershell
+$Certificate.Enrollment
+```
+
+Properties
+
+```text
+Present
+
+Template
+
+Classification
+
+Purpose
+
+EnterprisePKI
+
+AutoEnrollmentLikely
+
+RecommendedForWinRM
+
+Notes
+```
+
+Example
+
+```powershell
+$Certificate.Enrollment.Template
+```
+
+---
+
+# Identifiers
+
+```powershell
+$Certificate.Identifiers
+```
+
+Properties
+
+```text
+SubjectKeyIdentifier
+
+AuthorityKeyIdentifier
+```
+
+---
+
+# Authority Information Access
+
+```powershell
+$Certificate.AuthorityInformationAccess
+```
+
+Contains
+
+```text
+OCSP
+
+CAIssuers
+```
+
+---
+
+# CRL Distribution Points
+
+```powershell
+$Certificate.CRLDistributionPoints
+```
+
+Contains every CRL endpoint published by the certificate.
+
+---
+
+# Identity Matching
+
+Generated by
+
+```text
+Get-ERMCertificateIdentityMatch
+```
+
+Access
+
+```powershell
+$Certificate.IdentityMatch
+```
+
+Properties
+
+```text
+ComputerName
+
+DNSHostName
+
+Domain
+
+FQDN
+
+CandidateNames
+
+MatchedNames
+
+UnmatchedNames
+
+IdentityMatch
+
+MatchType
+
+MatchScore
+
+BestMatch
+
+SubjectMatch
+
+CommonNameMatch
+
+SANMatch
+
+WildcardMatch
+```
+
+Example
+
+```powershell
+$Certificate.IdentityMatch.MatchScore
+```
+
+Determine whether the certificate belongs to the current computer.
+
+```powershell
+$Certificate.IdentityMatch.IdentityMatch
+```
+
+---
+
+# Classification
+
+Generated by
+
+```text
+Get-ERMCertificateClassification
+```
+
+Access
+
+```powershell
+$Certificate.Classification
+```
+
+Properties
+
+```text
+Source
+
+CertificateType
+
+Enrollment
+
+Trust
+
+Purpose
+
+Tags
+
+Confidence
+
+Notes
+```
+
+Example
+
+```powershell
+$Certificate.Classification.Source.Type
+```
+
+Retrieve all classification tags.
+
+```powershell
+$Certificate.Classification.Tags
+```
+
+---
+
+# Validation
+
+Reserved for the Validation Engine.
+
+```powershell
+$Certificate.Validation
+```
+
+Current status
+
+```text
+Not yet implemented
+```
+
+---
+
+# Suitability
+
+Reserved for future workload suitability analysis.
+
+```powershell
+$Certificate.Suitability
+```
+
+Current status
+
+```text
+Not yet implemented
+```
+
+---
+
+# Recommendation
+
+Reserved for remediation guidance.
+
+```powershell
+$Certificate.Recommendation
+```
+
+Current status
+
+```text
+Not yet implemented
+```
+
+---
+
+# WinRM
+
+Reserved for WinRM selection analysis.
+
+```powershell
+$Certificate.WinRM
+```
+
+Current status
+
+```text
+Not yet implemented
+```
+
+---
+
+# Internal
+
+Contains internal engine metadata.
+
+Consumers should not rely on this section.
+
+```powershell
+$Certificate.Internal
+```
+
+Current properties
+
+```text
+Thumbprint
+
+Store
+
+RawCertificate
+```
+
+---
+
+# Common Queries
+
+Retrieve every server authentication certificate.
+
+```powershell
+$Inventory.Certificates |
+Where-Object {
+    $_.Usage.EKU.ServerAuthentication
+}
+```
+
+Retrieve every certificate with a private key.
+
+```powershell
+$Inventory.Certificates |
+Where-Object {
+    $_.PrivateKey.Present
+}
+```
+
+Retrieve certificates matching the current computer.
+
+```powershell
+$Inventory.Certificates |
+Where-Object {
+    $_.IdentityMatch.IdentityMatch
+}
+```
+
+Retrieve Microsoft managed certificates.
+
+```powershell
+$Inventory.Certificates |
+Where-Object {
+    $_.Classification.Source.MicrosoftManaged
+}
+```
+
+Retrieve Enterprise CA certificates.
+
+```powershell
+$Inventory.Certificates |
+Where-Object {
+    $_.Classification.Source.EnterpriseCA
+}
+```
+
+Retrieve certificates expiring within 30 days.
+
+```powershell
+$Inventory.Certificates |
+Where-Object {
+    $_.Validity.ExpiringSoon
+}
+```
+
+Retrieve certificates without accessible private keys.
+
+```powershell
+$Inventory.Certificates |
+Where-Object {
+    -not $_.PrivateKey.Accessible
+}
+```
+
+---
+
+# Design Philosophy
+
+The Certificate Object is the contract between the inventory layer and every analysis engine.
+
+Inventory functions populate immutable certificate metadata.
+
+Analysis engines populate only their dedicated sections.
+
+This separation ensures that future engines can be added without changing the object schema or breaking existing consumers.
+
+The ERM Certificate Object is considered the authoritative representation of certificate data throughout the Enterprise Remote Management framework.
