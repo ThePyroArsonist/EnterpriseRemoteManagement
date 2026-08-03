@@ -1,10 +1,17 @@
 ﻿function Get-ERMCertificateInformation {
     [CmdletBinding()]
-    param()
+    param(
+        [switch]$Raw
+    )
 
     $StartTime = Get-Date
     $Errors = @()
     $Warnings = @()
+
+    $Inventory = Get-ERMCertificateInventory
+    if ($Raw) {
+        return $Inventory
+    }
 
     try {
         Write-ERMLog -Message "Starting certificate detection"

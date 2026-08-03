@@ -17,6 +17,7 @@
         "Get-ERMSystemState"
         "Get-ERMNetworkInformation"
         "Get-ERMActiveDirectoryInformation"
+        "Get-ERMCertificateInformation"
     )
 
     CmdletsToExport = @()
